@@ -87,6 +87,7 @@ public class Game {
         }
     }
     // created by Jose debugged by Aaron
+    // really debugged by Aaron
 
     /**
      * Checks if Game was won by a player
@@ -129,45 +130,4 @@ public class Game {
         }
         return false;
     }
-
-    //Check to see if someone has won the game
-    /*
-    public Players gameWon() {
-        int j = 0;
-
-        //loop to check if a player has won on a horizontal win
-        for (int i = 0; i < 3; i++) {
-           if(squares[i][j].player!=Players.NOPLAYER) {
-               if (squares[i][j].player == squares[i][j + 1].player && squares[i][j + 1].player == squares[i][j + 2].player) {
-                   return squares[i][j].player;
-               }
-           }
-        }
-        //loop to check if a player has won on a vertical win
-        for (int i = 0; i < 3; i++) {
-            if(squares[j][i].player!=Players.NOPLAYER) {
-                if (squares[j][i].player == squares[j + 1][i].player && squares[j + 1][i].player == squares[j + 2][i].player) {
-                    return squares[i][j].player;//return the enum of the player who won
-                }
-            }
-        }
-
-        //checking diagonal
-        if(squares[0][0].player!=Players.NOPLAYER) {
-            if (squares[0][0].player == squares[1][1].player && squares[1][1].player == squares[2][2].player) {
-                return squares[0][0].player;//return the enum of the player who won
-            }
-        }
-
-        //checking opposite diagonal
-        if(squares[0][2].player!=Players.NOPLAYER) {
-            if (squares[0][2].player == squares[1][1].player && squares[1][1].player == squares[2][0].player) {
-                return squares[0][0].player;//return the enum of the player who won
-            }
-        }
-
-        //if no one has won
-        return null;
-    }
-    */
 }
