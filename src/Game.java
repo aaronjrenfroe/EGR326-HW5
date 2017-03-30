@@ -87,7 +87,7 @@ public class Game {
         }
     }
     // created by Jose debugged by Aaron
-    // really debugged by Aaron
+
 
     /**
      * Checks if Game was won by a player
@@ -105,7 +105,8 @@ public class Game {
         }
         return null;
     }
-
+    // Created by Jose debugged by Aaron
+    // really debugged by Aaron
     // helper, checks board if passed player has won
     private boolean checkIfPlayerWon(Players p){
         //loop to check if a player has won on a horizontal win
