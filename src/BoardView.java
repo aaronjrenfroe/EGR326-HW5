@@ -234,7 +234,8 @@ public class BoardView {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            if (!vc.getGameState()) {
+            if (false){
+            //if (!vc.getGameState()) {
                 playingSpace.swapPanels();
                 frame.invalidate();
                 frame.validate();
