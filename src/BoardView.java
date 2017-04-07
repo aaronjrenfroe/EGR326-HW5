@@ -5,40 +5,33 @@
  */
 
 
+import TwoDeeBoard.BoardPanel;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
 import java.util.ArrayList;
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.util.List;
-
 /**
  * The View for the Game
  */
-public class BoardView{
+public class BoardView {
     // Delegates
      ViewController vc;
 
     private JFrame frame;
-    private JButton newGame;
-    private JButton resetGame;
-    private JButton exitButton;
-    private JTextField player1NameField;
-    private JTextField player2NameField;
-    private JLabel nameLabel1;
-    private JLabel nameLabel2;
-    private JLabel player1Wins;
-    private JLabel player2Wins;
-    private JLabel player1Losses;
-    private JLabel player2Losses;
-    private JLabel winsLabel1;
-    private JLabel lossesLabel1;
-    private JLabel winsLabel2;
-    private JLabel lossesLabel2;
+    private GameInfo p1Menu;
+    private GameInfo p2Menu;
+
     private JLabel statusLabel;
+    private JRadioButton buttonBordButton;
+    private JRadioButton drawBordButton;
+
     // Collection of all the tic tac toe tiles
-    private List<JButton> spaces;
+    private BoardPanel playingSpace;
+
     String p1NameText;
     String p2NameText;
 
@@ -48,40 +41,29 @@ public class BoardView{
      */
      public BoardView(ViewController delegate){
          this.vc = delegate;
-        newGame = new JButton("New Game");
-        newGame.addActionListener(new NewGameListener());
-        resetGame = new JButton("Reset");
-        resetGame.addActionListener(new ResetGameListener());
-        exitButton = new JButton("Exit");
-        exitButton.addActionListener(new CloseListener());
-        nameLabel1 = new JLabel("Name:");
-        nameLabel2 = new JLabel("Name:");
-        player1NameField = new JTextField("Player 1");
-        player2NameField = new JTextField("Player 2");
-        winsLabel1 = new JLabel("Wins:");
-        lossesLabel1 = new JLabel("Losses:");
-        winsLabel2 = new JLabel("Wins:");
-        lossesLabel2 = new JLabel("Losses:");
-        player1Wins = new JLabel("0");
-        player1Losses = new JLabel("0");
-        player2Wins = new JLabel("0");
-        player2Losses = new JLabel("0");
+        p1Menu = new GameInfo(1);
+        p2Menu = new GameInfo(2);
+
         statusLabel = new JLabel("Welcome To Tic-Tac-Toe");
-        spaces = new ArrayList();
+        buttonBordButton = new JRadioButton("Button");
+        drawBordButton = new JRadioButton("Painted");
+
+        buttonBordButton.addActionListener(new GraphicsSwapTrigger(0));
+        drawBordButton.addActionListener(new GraphicsSwapTrigger(1));
 
         // creates 9 space buttons and adds creates and adds an
         // action Listener with a unique button ID to it.
         //seems to want an integer so I'll have to use this values, I'll jst make a translation table.
-        for (int i = 1; i <= 9; i++) {
-            JButton button = new JButton();
-            button.addActionListener(new SpacePressedListener(i));
-            button.setEnabled(false);
-            spaces.add(button);
-        }
+         List<ActionListener> alisteners = new ArrayList();
+         for (int i = 1; i <= 9; i++) {
+             alisteners.add(new SpacePressedListener(i));
+         }
+         playingSpace = new BoardPanel(alisteners);
+
 
         frame = new JFrame("Tic-Tac-Toe");
         frame.setLocation(300,100);
-        frame.setSize(500,500);
+        frame.setSize(550,550);
         frame.setResizable(false);
 
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
@@ -96,45 +78,23 @@ public class BoardView{
         Container scoreBoards = new JPanel();
         layoutScoreBoards(scoreBoards);
 
-        Container gameField = new JPanel();
-        layoutGameField(gameField);
-
         Container systemButtons = new JPanel();
         layoutSystemButtons(systemButtons);
 
+        //Container gameField = playingSpace;
+
         frame.add(scoreBoards, BorderLayout.NORTH);
-        frame.add(gameField, BorderLayout.CENTER);
+        frame.add(playingSpace, BorderLayout.CENTER);
         frame.add(systemButtons, BorderLayout.SOUTH);
+        frame.invalidate();
+        frame.validate();
     }
     // sets up score boards
     private void layoutScoreBoards(Container scoreBoards){
-        JPanel p1Panel = new JPanel();
-        p1Panel.setLayout(new GridLayout(3,2));
-        p1Panel.add(nameLabel1);
-        p1Panel.add(player1NameField);
-        p1Panel.add(winsLabel1);
-        p1Panel.add(player1Wins);
-        p1Panel.add(lossesLabel1);
-        p1Panel.add(player1Losses);
-        p1Panel.setBorder(BorderFactory.createTitledBorder("Player1(X):"));
-        p1Panel.setPreferredSize(new Dimension(160,90));
 
 
-        JPanel p2Panel = new JPanel();
-        p2Panel.setLayout(new GridLayout(3,2));
-        p2Panel.add(nameLabel2);
-        p2Panel.add(player2NameField);
-        p2Panel.add(winsLabel2);
-        p2Panel.add(player2Wins);
-        p2Panel.add(lossesLabel2);
-        p2Panel.add(player2Losses);
-        p2Panel.setPreferredSize(new Dimension(160,90));
-
-
-        p2Panel.setBorder(BorderFactory.createTitledBorder("Player2(0):"));
-
-        scoreBoards.add(p1Panel);
-        scoreBoards.add(p2Panel);
+        scoreBoards.add(p1Menu.getJPanel());
+        scoreBoards.add(p2Menu.getJPanel());
         //scoreBoards.setPreferredSize(new Dimension(320,120));
     }
     // sets up bottom buttons new game reset exit
@@ -143,23 +103,37 @@ public class BoardView{
 
         JPanel sysButtons = new JPanel();
         sysButtons.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
-
         statusLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        JButton newGame = new JButton("New Game");
+        JButton resetGame = new JButton("Reset");
+        JButton exitButton = new JButton("Exit");
+
+        newGame.addActionListener(new NewGameListener());
+        resetGame.addActionListener(new ResetGameListener());
+        exitButton.addActionListener(new CloseListener());
+
+        try {
+            Image imgNewGame = ImageIO.read(getClass().getResource("resources/newgame.png"));
+            Image imgReset = ImageIO.read(getClass().getResource("resources/reset.png"));
+            Image imgExit = ImageIO.read(getClass().getResource("resources/exit.png"));
+            newGame.setIcon(new ImageIcon(imgNewGame));
+            resetGame.setIcon(new ImageIcon(imgReset));
+            exitButton.setIcon(new ImageIcon(imgExit));
+        } catch (Exception ex) {
+            System.out.println(ex);
+        }
+        buttonBordButton.setSelected(true);
         sysButtons.add(newGame);
         sysButtons.add(resetGame);
         sysButtons.add(exitButton);
+        sysButtons.add(new JLabel("View:"));
+        ButtonGroup switchViewButtons = new ButtonGroup();
+        switchViewButtons.add(buttonBordButton);
+        switchViewButtons.add(drawBordButton);
+        sysButtons.add(buttonBordButton);
+        sysButtons.add(drawBordButton);
         bottom.add(sysButtons);
-        bottom.add(statusLabel);
-    }
-    // sets up playing field
-    private void layoutGameField(Container gameField){
-
-        gameField.setLayout(new GridLayout(3,3));
-
-        for (int i = 0; i < spaces.size(); i++) {
-            gameField.add(spaces.get(i));
-        }
-
+        bottom.add(statusLabel, BorderLayout.WEST);
     }
 
     // EXIT BUTTON
@@ -176,37 +150,34 @@ public class BoardView{
         public void actionPerformed(ActionEvent e) {
 
             //TODO: Initiate new Game in the controller
-            if (player1NameField.getText().trim().equals("") || player2NameField.getText().trim().equals("")) {
+            if (p1Menu.getEnteredName().trim().equals("") || p2Menu.getEnteredName().trim().equals("")) {
                 JOptionPane.showOptionDialog(frame, "Illegal player name(s).", "Error", JOptionPane.DEFAULT_OPTION,
                         JOptionPane.ERROR_MESSAGE, null, null, null);
             }
-            p1NameText = player1NameField.getText();
-            p2NameText = player2NameField.getText();
-            vc.newGame();
-            for (int i = 0; i < 9; i++) {
-                spaces.get(i).setText("");
-            }
-            statusLabel.setText(p1NameText+"'s Turn");
-            gameButtonsEnabled(true);
 
+            p1NameText = p1Menu.getEnteredName();
+            p2NameText = p2Menu.getEnteredName();
+
+            vc.newGame();
+            playingSpace.newGame();
+            statusLabel.setText(p1NameText+"'s Turn");
+            frame.invalidate();
+            frame.validate();
         }
     }
     // RESET GAME ACTION
     private class ResetGameListener implements ActionListener{
         @Override
         public void actionPerformed(ActionEvent e) {
-            //DO SOMETHING
-            //TODO: Reset Game in controller
             int res = JOptionPane.showOptionDialog(frame, "This will end the game and set the win/losses stats to 0. Are you sure?", "Are You Sure?", JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE, null, null, null);
             if (res == JOptionPane.YES_OPTION) {
-                System.out.println("Players wish to reset game");
                 vc.reset();
                 gameButtonsEnabled(false);
-                for (int i = 0; i < 9; i++) {
-                    spaces.get(i).setText("");
-                }
+                playingSpace.newGame();
             }
+            frame.invalidate();
+            frame.validate();
         }
     }
     // TILE Pressed Button
@@ -215,36 +186,63 @@ public class BoardView{
         int buttonID;
 
         public SpacePressedListener(int buttonNumber){
+
             this.buttonID = buttonNumber;
         }
         // This is the function that gets called
         @Override
         public void actionPerformed(ActionEvent e) {
-
-            System.out.println("Game Button " + buttonID + " was Pressed");
-            //passing value of button pressed to makeMove function
-            String check = vc.makeMove(buttonID);
-            switch (check){
-                case "yes":
-                    break;
-                case "no":
-                    statusLabel.setText("Can't Go there, Try again");
-                    break;
-                case "draw":
-                    statusLabel.setText("There is a draw");
-                    gameButtonsEnabled(false);
-                    break;
-                case "PLAYER1":
-                    statusLabel.setText( p1NameText+" WINS!");
-                    gameButtonsEnabled(false);
-                    break;
-                case "PLAYER2":
-                    statusLabel.setText( p2NameText+" WINS!");
-                    gameButtonsEnabled(false);
-                    break;
-                default: break;
+            if (vc.humanCanMove) {
+                System.out.println("Game Button " + buttonID + " was Pressed");
+                //passing value of button pressed to makeMove function
+                String check = vc.makeMove(buttonID);
+                switch (check) {
+                    case "yes":
+                        break;
+                    case "no":
+                        statusLabel.setText("Can't Go there, Try again");
+                        break;
+                    case "draw":
+                        statusLabel.setText("There is a draw");
+                        gameButtonsEnabled(false);
+                        break;
+                    case "PLAYER1":
+                        statusLabel.setText(p1NameText + " WINS!");
+                        gameButtonsEnabled(false);
+                        break;
+                    case "PLAYER2":
+                        statusLabel.setText(p2NameText + " WINS!");
+                        gameButtonsEnabled(false);
+                        break;
+                    default:
+                        break;
+                }
+            }else{
+                statusLabel.setText("Please Wait for computer to finish");
             }
 
+        }
+    }
+    private class GraphicsSwapTrigger implements ActionListener{
+        int button;
+        public GraphicsSwapTrigger(int id){
+            if (id != 0 && id != 1){
+                throw new IllegalArgumentException("Button ID must be 1 or 0, you pass a " + id);
+            }
+            this.button = id;
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            if (!vc.getGameState()) {
+                playingSpace.swapPanels();
+                frame.invalidate();
+                frame.validate();
+            }else{
+
+                buttonBordButton.setSelected(!buttonBordButton.isSelected());
+
+            }
         }
     }
 
@@ -256,10 +254,8 @@ public class BoardView{
      * @param p2wins
      */
     public void setWins(int p1wins, int p2wins){
-        player1Wins.setText(String.valueOf(p1wins));
-
-        player2Wins.setText(String.valueOf(p2wins));
-
+        p1Menu.setWins(p1wins);
+        p2Menu.setWins(p2wins);
     }
 
     /**
@@ -268,11 +264,8 @@ public class BoardView{
      * @param p2Val
      */
     public void setLooses(int p1Val, int p2Val){
-
-        player1Losses.setText(String.valueOf(p1Val));
-
-        player2Losses.setText(String.valueOf(p2Val));
-
+        p1Menu.setLooses(p1Val);
+        p2Menu.setLooses(p2Val);
     }
 
     /**
@@ -281,21 +274,36 @@ public class BoardView{
      * @param p1Turn Who made the mark. Used to put an x or a o
      */
     public void markTile(int space, boolean p1Turn){
-        JButton spaceButton = spaces.get(space-1);
+        playingSpace.addMark(space,  p1Turn ? 1 : 2);
+
         if (p1Turn){
-            spaceButton.setText("X");
+
             statusLabel.setText(p2NameText+"'s Turn");
         }
         else{
-            spaceButton.setText("O");
+
             statusLabel.setText(p1NameText+"'s Turn");
         }
     }
     // helper method used to enable and disable the board
     private void gameButtonsEnabled(boolean status){
-        for(JButton b:spaces){
-            b.setEnabled(status);
-        }
+        playingSpace.gameEnabled(status);
+        frame.invalidate();
+        frame.validate();
     }
 
+    /**
+     * 0 Human
+     * 1 Random
+     * 2 Sequential
+     * 3 Blocker
+     * 4 Smart
+     * @return
+     */
+    public int getPlayer1Mode(){
+        return p1Menu.getMode();
+    }
+    public int getPlayer2Mode(){
+        return p2Menu.getMode();
+    }
 }
