@@ -1,3 +1,4 @@
+import javax.swing.text.View;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -6,7 +7,7 @@ import java.util.List;
  * for Dr. Han
  */
 
-public class ViewController{
+public final class ViewController{
 
     Game m;
     BoardView v;
@@ -18,12 +19,14 @@ public class ViewController{
     int p2Looses;
     List<Integer> moves;
     boolean p1Turn;
-
+    private boolean gameState;
+    private static ViewController uniqInstance;
+    boolean humanCanMove = true;
     // Aaron
     /**
      * sets new game, passes game a reference to itself
      */
-    public ViewController(){
+    private ViewController(){
         m = new Game();
         m.setController(this);
         moves = new ArrayList();
@@ -32,6 +35,19 @@ public class ViewController{
         p1Looses = 0;
         p2Looses = 0;
         p1Turn = true;
+        gameState = false;
+
+    }
+
+    public static ViewController getInstance(){
+        if (uniqInstance == null){
+            synchronized (ViewController.class){
+                if (uniqInstance == null){
+                    uniqInstance = new ViewController();
+                }
+            }
+        }
+        return uniqInstance;
     }
     // Aaron
     /**
@@ -50,6 +66,7 @@ public class ViewController{
      * @return returns true if it was possible, if not it returns false.
      */
     public String makeMove(int move){
+
         String playerMove=table(move);
         String[] coordinates=playerMove.split(",");
         int xCoordinate=Integer.parseInt(coordinates[0]);
@@ -57,6 +74,9 @@ public class ViewController{
         if(!moves.contains(move)) {
 
             boolean good = m.makeAMove(xCoordinate, yCoordinate);
+            // We can create an empty board in the constructor, clear in on newGame and
+            // We can update a copy of the board here
+            //
             v.markTile(move, p1Turn);
 
             String status = gameStatus(); // Status will always == "noplayer" and assume p2 won.
@@ -65,13 +85,16 @@ public class ViewController{
                 if (good == true) {
                     p1Turn = !p1Turn;
                     moves.add(move);
+                    checkNextPlayer();
                     return "yes";
                 } else {
                     return "no";
                 }
             } else if (status == "draw") { //there was a draw, return the draw status
+                gameState = false;
                 return status;
             } else { //if there was a winner then check which player was, return the name of the player and update the wins and loses
+                gameState = false;
                 if (status == "PLAYER1") {
                     p1Wins += 1;
                     p2Looses += 1;
@@ -83,6 +106,7 @@ public class ViewController{
                     update();
                     return status;
                 }
+
             }
         }
         return "no";
@@ -158,9 +182,58 @@ public class ViewController{
      * Called in View creates a new game
      */
     public void newGame(){
+        gameState = true;
         m = new Game();
         moves = new ArrayList();
         p1Turn = true;
+        checkNextPlayer();
+
+    }
+
+    public boolean getGameState(){
+        return gameState;
+    }
+
+    public void checkNextPlayer(){
+        int mode = 0;
+        if(p1Turn){
+            mode = v.getPlayer1Mode();
+        }else{
+            mode = v.getPlayer2Mode();
+        }
+        if (mode != 0) {
+            humanCanMove = false;
+            List<Integer> coord = new ArrayList();
+            switch (mode) {
+                case 1:
+                    coord = Strategy1.makeMove(m.getGameBoardCopy());
+                    break;
+                case 2:
+                    coord = Sequential.makeMove(m.getGameBoardCopy());
+                    break;
+                case 3:
+                    coord = Blocker.makeMove(m.getGameBoardCopy(), p1Turn ? Players.PLAYER1: Players.PLAYER2);
+                    break;
+                case 4:
+                    coord = Smart.makeMove(m.getGameBoardCopy(), p1Turn ? Players.PLAYER1: Players.PLAYER2);
+                    break;
+                default:
+                    break;
+            }
+            final List<Integer> co = coord;
+            new java.util.Timer().schedule(
+                    new java.util.TimerTask() {
+                        @Override
+                        public void run() {
+                            System.out.println("Computer Moved");
+                            makeMove(((co.get(0)*3)+co.get(1))+1);
+                            humanCanMove = true;
+                        }
+                    },
+                    100
+            );
+
+        }
 
     }
 }

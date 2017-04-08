@@ -36,8 +36,6 @@ public class Game {
         }
     }
 
-
-
     /**Check to see if there is an empty cell for a draw
      * created by Jose
      * @return true is board is full and there is no winner
@@ -105,6 +103,7 @@ public class Game {
         }
         return null;
     }
+
     // Created by Jose debugged by Aaron
     // really debugged by Aaron
     // helper, checks board if passed player has won
@@ -130,5 +129,9 @@ public class Game {
             return true;//return the enum of the player who won
         }
         return false;
+    }
+
+    public Square[][] getGameBoardCopy(){
+        return this.squares;
     }
 }

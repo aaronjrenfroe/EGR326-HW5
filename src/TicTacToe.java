@@ -8,12 +8,9 @@ public class TicTacToe{
 
     public static void main(String[] args) {
 
-        ViewController c = new ViewController();
+        ViewController c = ViewController.getInstance();
         BoardView v = new BoardView(c);
         c.setView(v);
-
-
     }
-
-
+    
 }
